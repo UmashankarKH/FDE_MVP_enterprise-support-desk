@@ -127,7 +127,7 @@ async def run_agent(service_id: str, system_prompt: str, user_prompt: str,
     if not expect_json:
         return text
 
-    try:
+    try: 
         start = text.index("{")
         end = text.rindex("}") + 1
         return json.loads(text[start:end])

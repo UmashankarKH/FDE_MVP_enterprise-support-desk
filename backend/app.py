@@ -10,6 +10,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+import question_cache
+import resolution_cache
 from auth import verify_token
 from config import settings
 from cosmos_store import get_ticket, get_stats, list_tickets
@@ -98,6 +100,16 @@ def get_ticket_stats(claims: dict = Depends(verify_token)):
     tickets created in the current browser session. Registered ahead of
     /tickets/{ticket_id} so 'stats' isn't swallowed as a ticket_id."""
     return get_stats()
+
+
+@app.get("/cache/stats")
+def cache_stats(claims: dict = Depends(verify_token)):
+    """Live resolution-cache stats for the Admin Dashboard's cache-memory
+    panel - real hit/miss counters and recent events since this process
+    started, not a mock. Same data resolution_cache.py already tracks
+    internally for cost optimization; this just makes it visible. The
+    question-level cache stats ride along under their own key."""
+    return {**resolution_cache.stats(), "question_cache": question_cache.stats()}
 
 
 @app.get("/tickets/{ticket_id}")

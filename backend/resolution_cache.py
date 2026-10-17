@@ -25,7 +25,7 @@ The Critic Agent still reviews every single ticket, cached or not - caching
 the draft is not the same as caching the decision to auto-resolve.
 """
 import time
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from typing import Optional
 
 from config import settings
@@ -35,6 +35,19 @@ from config import settings
 # OrderedDict so we can evict the oldest entry once RESOLVER_CACHE_MAX_ENTRIES
 # is hit, without pulling in a separate LRU dependency.
 _cache: "OrderedDict[str, dict]" = OrderedDict()
+
+# Live counters for the Admin Dashboard's cache-memory panel. In-memory only,
+# same lifetime as _cache itself (resets on redeploy/restart) - this is a
+# demo/teaching instrument, not a durable metric, so no Cosmos write cost
+# gets added just to track it.
+_hits = 0
+_misses = 0
+_expired = 0
+_recent: "deque[dict]" = deque(maxlen=25)  # most recent cache events, newest first
+
+
+def _record(event: str, citation_id: Optional[str]) -> None:
+    _recent.appendleft({"event": event, "citation_id": citation_id, "at": time.time()})
 
 
 def _is_expired(entry: dict) -> bool:
@@ -46,19 +59,32 @@ def get(citation_id: Optional[str], rag_confidence: Optional[float]) -> Optional
     before, the RAG match was strong enough (for both the cached answer and
     the current ticket) to trust reusing it, and the entry hasn't expired.
     Returns None on any miss - callers should treat that as "run the LLM"."""
+    global _hits, _misses, _expired
+
     if not settings.RESOLVER_CACHE_ENABLED or not citation_id:
+        _misses += 1
+        _record("miss", citation_id)
         return None
     if (rag_confidence or 0.0) < settings.RESOLVER_CACHE_MIN_RAG_CONFIDENCE:
+        _misses += 1
+        _record("miss_low_confidence", citation_id)
         return None
 
     entry = _cache.get(citation_id)
     if entry is None:
+        _misses += 1
+        _record("miss", citation_id)
         return None
     if _is_expired(entry):
         del _cache[citation_id]
+        _expired += 1
+        _misses += 1
+        _record("expired", citation_id)
         return None
 
     _cache.move_to_end(citation_id)  # mark as recently used
+    _hits += 1
+    _record("hit", citation_id)
     return entry
 
 
@@ -82,6 +108,19 @@ def set(citation_id: Optional[str], resolution_text: str, confidence: float, pro
 
 
 def stats() -> dict:
-    """Exposed for the Admin Dashboard / a quick sanity check - not required
-    for the cache to function."""
-    return {"enabled": settings.RESOLVER_CACHE_ENABLED, "entries": len(_cache)}
+    """Exposed for the Admin Dashboard's cache-memory panel / a quick sanity
+    check - not required for the cache to function. hit_rate_pct is computed
+    from real hits/misses since process start, not a fabricated number."""
+    total = _hits + _misses
+    return {
+        "enabled": settings.RESOLVER_CACHE_ENABLED,
+        "entries": len(_cache),
+        "max_entries": settings.RESOLVER_CACHE_MAX_ENTRIES,
+        "ttl_seconds": settings.RESOLVER_CACHE_TTL_SECONDS,
+        "min_rag_confidence": settings.RESOLVER_CACHE_MIN_RAG_CONFIDENCE,
+        "hits": _hits,
+        "misses": _misses,
+        "expired": _expired,
+        "hit_rate_pct": round((_hits / total) * 100, 1) if total else 0.0,
+        "recent_events": list(_recent),
+    }

@@ -43,10 +43,23 @@ export const LiveChatInterface: React.FC<LiveChatInterfaceProps> = ({
       const result = await instance.acquireTokenSilent({ ...tokenRequest, account });
       return result.accessToken;
     } catch (err) {
-      if (err instanceof InteractionRequiredAuthError) {
-        const result = await instance.acquireTokenPopup(tokenRequest);
-        return result.accessToken;
-      }
+      // Falls back to an interactive popup for ANY silent-acquisition
+      // failure, not just InteractionRequiredAuthError. MSAL's silent path
+      // uses a hidden iframe for SSO renewal when there's no cached token
+      // for this scope yet, and that iframe depends on third-party cookies
+      // to login.microsoftonline.com - browsers with strict tracker/cookie
+      // blocking (Brave Shields, Safari ITP, Chrome third-party cookie
+      // phase-out) block it outright, which surfaces as
+      // BrowserAuthError: timed_out rather than InteractionRequiredAuthError.
+      // A real popup is a user-gesture window, not a background iframe, so
+      // it isn't subject to the same blocking.
+      // Uses a full-page REDIRECT, not a popup. By the time silent renewal
+      // times out (~10s), the click's user-gesture is long gone, so browsers
+      // block any popup opened from here - clicking Send again never fixes
+      // it. A redirect needs no gesture, works in Brave, and returns the
+      // user to this page with a fresh token.
+      console.warn('acquireTokenSilent failed, redirecting to sign in:', err);
+      await instance.acquireTokenRedirect(tokenRequest);
       throw err;
     }
   };
@@ -172,16 +185,31 @@ export const LiveChatInterface: React.FC<LiveChatInterfaceProps> = ({
 
       onTicketCreatedOrUpdated(newTicket);
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('API Chat Error:', err);
-      // Fallback AI message
+
+      // Was this a real backend/pipeline failure, or just an auth hiccup on
+      // our side (popup blocked, silent renewal timed out)? These need
+      // different messages - an auth failure is fixed by clicking Send
+      // again (a fresh click gives the browser a real user gesture, so the
+      // popup fallback in getAccessToken() will actually be allowed to open
+      // this time), a backend failure is not. Previously both cases showed
+      // an identical fabricated "processed successfully, 88% confidence"
+      // message, which silently hid genuine failures - including auth ones -
+      // behind a fake success state. Never do that again: an error state
+      // must look like an error state.
+      const isAuthError = err?.name === 'BrowserAuthError' || err?.errorCode?.includes?.('popup') || err?.errorCode === 'timed_out';
+
       const errorMsg: ChatMessage = {
         id: `msg-${Date.now()}-err`,
         sender: 'ai',
         senderName: 'AI Support Agent',
-        text: 'I have processed your request. If your issue persists, our support team has been notified.',
+        text: isAuthError
+          ? 'Your sign-in expired. Redirecting you to sign in again - after you return, send your message again.'
+          : `Sorry, something went wrong reaching the support agent (${err?.message || 'unknown error'}). Please try again in a moment.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        confidenceScore: 88,
+        // No fabricated confidenceScore here - this is an error state, it
+        // must not look like a successful, confident resolution.
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {

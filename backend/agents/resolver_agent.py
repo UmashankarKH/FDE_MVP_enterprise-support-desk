@@ -93,25 +93,41 @@ async def run(state: TicketState) -> TicketState:
     state.draft_resolution = result.get("resolution_text", "")
     state.resolver_confidence = result.get("confidence", 0.0)
     state.status = "critic_review"
-    state.log_step(
-        "resolver",
-        f"Drafted resolution, confidence={state.resolver_confidence}, "
-        f"action={result.get('proposed_action')}, tool_calls={tool_calls_made or 'none'}",
-        {"proposed_action": result.get("proposed_action"), "tool_calls_made": tool_calls_made, "cache_hit": False},
-    )
-    # stash for the critic/action agents
-    state.action_result = {"proposed_action": result.get("proposed_action")}
 
     # Only cache a result worth replaying: a strong RAG match that produced a
     # confident draft (i.e. one that wouldn't have been forced to a human
-    # anyway under the existing confidence-floor guardrail).
-    if (
-        top_citation_id
-        and (state.rag_confidence or 0.0) >= settings.RESOLVER_CACHE_MIN_RAG_CONFIDENCE
-        and state.resolver_confidence >= settings.AUTO_RESOLVE_CONFIDENCE_THRESHOLD
-    ):
+    # anyway under the existing confidence-floor guardrail). The reason a
+    # result was NOT cached goes into the trace so it's visible, not silent.
+    skip_reason = None
+    if not settings.RESOLVER_CACHE_ENABLED:
+        skip_reason = "cache disabled"
+    elif not top_citation_id:
+        skip_reason = "no KB citation to key on"
+    elif (state.rag_confidence or 0.0) < settings.RESOLVER_CACHE_MIN_RAG_CONFIDENCE:
+        skip_reason = f"rag_confidence {state.rag_confidence} < cache minimum {settings.RESOLVER_CACHE_MIN_RAG_CONFIDENCE}"
+    elif state.resolver_confidence < settings.AUTO_RESOLVE_CONFIDENCE_THRESHOLD:
+        skip_reason = f"resolver_confidence {state.resolver_confidence} < {settings.AUTO_RESOLVE_CONFIDENCE_THRESHOLD}"
+
+    cached_now = skip_reason is None
+    if cached_now:
         resolution_cache.set(
             top_citation_id, state.draft_resolution, state.resolver_confidence, result.get("proposed_action")
         )
+
+    state.log_step(
+        "resolver",
+        f"Drafted resolution, confidence={state.resolver_confidence}, "
+        f"action={result.get('proposed_action')}, tool_calls={tool_calls_made or 'none'}, "
+        f"{'stored in cache' if cached_now else 'not cached: ' + skip_reason}",
+        {
+            "proposed_action": result.get("proposed_action"),
+            "tool_calls_made": tool_calls_made,
+            "cache_hit": False,
+            "cache_stored": cached_now,
+            "cache_skip_reason": skip_reason,
+        },
+    )
+    # stash for the critic/action agents
+    state.action_result = {"proposed_action": result.get("proposed_action")}
 
     return state

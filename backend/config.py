@@ -53,16 +53,29 @@ class Settings:
     # Only reuse a cached answer if the RAG match that produced it (and the
     # match for the new ticket) was strong - never replay a cached answer
     # that came from a shaky/ambiguous KB match.
-    RESOLVER_CACHE_MIN_RAG_CONFIDENCE = float(os.environ.get("RESOLVER_CACHE_MIN_RAG_CONFIDENCE", "0.75"))
+    # 0.55, not 0.75: pure-vector cosine scores for short, correct queries land
+    # in the 0.6s (a real "camera issues" ticket matched its exact KB article at
+    # 0.64), so 0.75 meant common questions never got cached. Keep this above
+    # RAG_CONFIDENCE_THRESHOLD (0.45) so weak matches are still never replayed.
+    RESOLVER_CACHE_MIN_RAG_CONFIDENCE = float(os.environ.get("RESOLVER_CACHE_MIN_RAG_CONFIDENCE", "0.55"))
 
-    # Cost tracing: $ per 1,000 tokens, by service_id. Defaults match GPT-4o-mini
-    # (mini) and GPT-4o (flagship) list pricing - if your actual deployment is
-    # on a different underlying model, override these via env vars so the
-    # estimated costs in the trace are accurate, not just plausible-looking.
+    # Question-level cache (question_cache.py): skips the Intake and Triage
+    # LLM calls for an exact repeat of a question that already ended in a clean
+    # auto-resolve on an "auto_resolve"-tagged KB article. RAG, Resolver and
+    # Critic still run, so no guardrail or human-review rule is bypassed.
+    QUESTION_CACHE_ENABLED = os.environ.get("QUESTION_CACHE_ENABLED", "true").lower() == "true"
+    QUESTION_CACHE_TTL_SECONDS = int(os.environ.get("QUESTION_CACHE_TTL_SECONDS", "86400"))  # 24h
+    QUESTION_CACHE_MAX_ENTRIES = int(os.environ.get("QUESTION_CACHE_MAX_ENTRIES", "500"))
+
+    # Cost tracing: $ per 1,000 tokens, by service_id. Defaults match the
+    # models actually deployed on this rebuild - GPT-4.1-mini (mini) and
+    # GPT-4o (flagship). If your deployment ever changes model again, update
+    # these (or override via env vars) so the estimated costs in the trace
+    # stay accurate instead of just plausible-looking.
     TOKEN_PRICING = {
         "mini": {
-            "input": float(os.environ.get("MINI_INPUT_PRICE_PER_1K", "0.00015")),
-            "output": float(os.environ.get("MINI_OUTPUT_PRICE_PER_1K", "0.0006")),
+            "input": float(os.environ.get("MINI_INPUT_PRICE_PER_1K", "0.0004")),
+            "output": float(os.environ.get("MINI_OUTPUT_PRICE_PER_1K", "0.0016")),
         },
         "flagship": {
             "input": float(os.environ.get("FLAGSHIP_INPUT_PRICE_PER_1K", "0.0025")),

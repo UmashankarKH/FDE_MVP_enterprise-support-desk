@@ -49,7 +49,7 @@ import {
   CartesianGrid
 } from 'recharts';
 
-const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://fde-backend-api.niceforest-3c4b30ba.eastus.azurecontainerapps.io';
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://fde-backend-api.thankfulsea-427101da.eastus.azurecontainerapps.io';
 
 interface BackendStats {
   total_tickets: number;
@@ -59,6 +59,29 @@ interface BackendStats {
   not_resolved: number;
   resolution_rate_pct: number;
   by_channel: Record<string, number>;
+}
+
+// Mirrors resolution_cache.py's stats() shape exactly - real counters from
+// the live backend process, not mocked. See GET /cache/stats in app.py.
+interface CacheStats {
+  enabled: boolean;
+  entries: number;
+  max_entries: number;
+  ttl_seconds: number;
+  min_rag_confidence: number;
+  hits: number;
+  misses: number;
+  expired: number;
+  hit_rate_pct: number;
+  recent_events: { event: string; citation_id: string | null; at: number }[];
+  // Question-level cache (skips Intake + Triage on exact repeat questions)
+  question_cache?: {
+    enabled: boolean;
+    entries: number;
+    hits: number;
+    misses: number;
+    hit_rate_pct: number;
+  };
 }
 
 function formatRelative(iso?: string): string {
@@ -161,6 +184,221 @@ interface AdminDashboardProps {
   onTriggerEmailToast: (recipient: string, subject: string, ticketId: string, status: string) => void;
 }
 
+// --- Teaching panel: KV cache size, simulated ---
+// IMPORTANT: this is illustrative only. The KV cache lives entirely inside
+// Azure OpenAI's own serving infrastructure - it is never exposed through
+// the API, so there is no real setting here to control. This panel exists
+// to make the formula from the curriculum's Segment A tangible on a slide,
+// not to represent anything this app's live backend actually does. Say
+// that out loud when demoing it - the honesty is the point.
+const KV_QUANT_OPTIONS = [
+  { label: 'fp16 / bf16', bytesPerParam: 2 },
+  { label: 'int8', bytesPerParam: 1 },
+  { label: 'int4', bytesPerParam: 0.5 },
+];
+
+function formatBytes(bytes: number): string {
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${bytes.toFixed(0)} B`;
+}
+
+const KVCacheSimulator: React.FC = () => {
+  // Stand-in architecture numbers for a representative 70B-class open-weight
+  // model - gpt-4o's real layer/head counts aren't published by Azure.
+  const [layers, setLayers] = useState(80);
+  const [heads, setHeads] = useState(64);
+  const [headDim, setHeadDim] = useState(128);
+  const [seqLength, setSeqLength] = useState(8000);
+  const [concurrency, setConcurrency] = useState(10);
+  const [quantIdx, setQuantIdx] = useState(0);
+
+  const bytesPerParam = KV_QUANT_OPTIONS[quantIdx].bytesPerParam;
+  const perSequenceBytes = layers * 2 * heads * headDim * bytesPerParam * seqLength;
+  const totalBytes = perSequenceBytes * concurrency;
+
+  const Slider = (
+    label: string,
+    value: number,
+    min: number,
+    max: number,
+    step: number,
+    onChange: (v: number) => void,
+    display?: string,
+  ) => (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs text-slate-400">
+        <span>{label}</span>
+        <span className="font-mono text-cyan-300">{display ?? value.toLocaleString()}</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-cyan-500"
+      />
+    </div>
+  );
+
+  return (
+    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+      <div className="flex items-start justify-between">
+        <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+          <Zap className="w-4 h-4 text-amber-400" />
+          <span>KV Cache Size — Simulated</span>
+        </h3>
+        <span className="text-[10px] uppercase tracking-wide bg-amber-500/10 text-amber-300 border border-amber-500/30 rounded-full px-2 py-0.5">
+          Not live — teaching only
+        </span>
+      </div>
+      <p className="text-xs text-slate-500 leading-relaxed">
+        Illustrative — not connected to the real Azure OpenAI backend. The KV cache is entirely internal to the model-serving
+        infrastructure and isn't exposed by the API. This exists to make the formula tangible, not to control anything real.
+      </p>
+
+      <div className="grid grid-cols-2 gap-4">
+        {Slider('Layers', layers, 8, 120, 1, setLayers)}
+        {Slider('Attention heads', heads, 8, 128, 1, setHeads)}
+        {Slider('Head dimension', headDim, 32, 256, 8, setHeadDim)}
+        {Slider('Sequence length (tokens)', seqLength, 500, 128000, 500, setSeqLength)}
+        {Slider('Concurrent sequences', concurrency, 1, 500, 1, setConcurrency)}
+        <div className="space-y-1">
+          <div className="text-xs text-slate-400">Precision</div>
+          <div className="flex gap-1">
+            {KV_QUANT_OPTIONS.map((opt, i) => (
+              <button
+                key={opt.label}
+                onClick={() => setQuantIdx(i)}
+                className={`flex-1 text-[11px] px-2 py-1.5 rounded-lg border transition-colors ${
+                  quantIdx === i
+                    ? 'bg-cyan-500/20 border-cyan-500 text-cyan-200'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+        <div className="bg-slate-950 rounded-xl p-3">
+          <div className="text-[11px] text-slate-500">Per sequence</div>
+          <div className="text-lg font-bold text-white font-mono">{formatBytes(perSequenceBytes)}</div>
+        </div>
+        <div className="bg-slate-950 rounded-xl p-3">
+          <div className="text-[11px] text-slate-500">Total (× concurrency)</div>
+          <div className="text-lg font-bold text-amber-300 font-mono">{formatBytes(totalBytes)}</div>
+        </div>
+      </div>
+      <div className="text-[11px] text-slate-600 font-mono">
+        layers({layers}) × 2 × heads({heads}) × head_dim({headDim}) × bytes({bytesPerParam}) × seq_len({seqLength.toLocaleString()})
+      </div>
+    </div>
+  );
+};
+
+// --- Teaching panel: resolution cache, live ---
+// Unlike the KV simulator above, this one is 100% real - it renders
+// resolution_cache.py's actual counters from GET /cache/stats.
+const CacheMemoryPanel: React.FC<{ stats: CacheStats | null }> = ({ stats }) => {
+  if (!stats) {
+    return (
+      <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+        <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+          <BookOpen className="w-4 h-4 text-emerald-400" />
+          <span>Cache Memory — Live</span>
+        </h3>
+        <p className="text-xs text-slate-500">Waiting for first sync from the backend...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+      <div className="flex items-start justify-between">
+        <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+          <BookOpen className="w-4 h-4 text-emerald-400" />
+          <span>Cache Memory — Live</span>
+        </h3>
+        <span
+          className={`text-[10px] uppercase tracking-wide rounded-full px-2 py-0.5 border ${
+            stats.enabled
+              ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+              : 'bg-slate-700/30 text-slate-400 border-slate-600'
+          }`}
+        >
+          {stats.enabled ? 'Enabled' : 'Disabled'}
+        </span>
+      </div>
+      <p className="text-xs text-slate-500 leading-relaxed">
+        Real counters from resolution_cache.py, keyed on RAG citation id. A hit only ever skips the Resolver's flagship-model
+        draft — the Critic still reviews every ticket regardless.
+      </p>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-slate-950 rounded-xl p-3 text-center">
+          <div className="text-xl font-bold text-emerald-300 font-mono">{stats.hit_rate_pct}%</div>
+          <div className="text-[11px] text-slate-500">Hit rate</div>
+        </div>
+        <div className="bg-slate-950 rounded-xl p-3 text-center">
+          <div className="text-xl font-bold text-white font-mono">{stats.hits}</div>
+          <div className="text-[11px] text-slate-500">Hits</div>
+        </div>
+        <div className="bg-slate-950 rounded-xl p-3 text-center">
+          <div className="text-xl font-bold text-white font-mono">{stats.misses}</div>
+          <div className="text-[11px] text-slate-500">Misses</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 text-[11px] text-slate-500">
+        <div>Entries: <span className="text-slate-300 font-mono">{stats.entries}/{stats.max_entries}</span></div>
+        <div>TTL: <span className="text-slate-300 font-mono">{Math.round(stats.ttl_seconds / 3600)}h</span></div>
+        <div>Min RAG conf: <span className="text-slate-300 font-mono">{stats.min_rag_confidence}</span></div>
+      </div>
+
+      {stats.question_cache && (
+        <div className="bg-slate-950 rounded-xl p-3 text-[11px] text-slate-500">
+          <span className="text-slate-300 font-semibold">Question cache</span> (skips Intake + Triage on exact repeats):{' '}
+          <span className="text-emerald-300 font-mono">{stats.question_cache.hits} hits</span>
+          {' / '}
+          <span className="text-slate-300 font-mono">{stats.question_cache.misses} misses</span>
+          {' · '}
+          <span className="text-slate-300 font-mono">{stats.question_cache.hit_rate_pct}%</span>
+          {' · '}
+          <span className="text-slate-300 font-mono">{stats.question_cache.entries} entries</span>
+        </div>
+      )}
+
+      {stats.recent_events.length > 0 && (
+        <div className="pt-2 border-t border-slate-800 space-y-1.5 max-h-40 overflow-y-auto">
+          {stats.recent_events.slice(0, 8).map((ev, i) => (
+            <div key={i} className="flex items-center justify-between text-[11px]">
+              <span
+                className={
+                  ev.event === 'hit'
+                    ? 'text-emerald-400'
+                    : ev.event === 'expired'
+                    ? 'text-amber-400'
+                    : 'text-slate-500'
+                }
+              >
+                {ev.event} {ev.citation_id ? `· ${ev.citation_id}` : ''}
+              </span>
+              <span className="text-slate-600">{formatRelative(new Date(ev.at * 1000).toISOString())}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   tickets,
   onUpdateTicket,
@@ -193,6 +431,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // created locally in this browser tab (which is all `tickets` prop reflects).
   const { instance, accounts } = useMsal();
   const [backendStats, setBackendStats] = useState<BackendStats | null>(null);
+  const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
   const [backendTickets, setBackendTickets] = useState<Ticket[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -208,10 +447,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const result = await instance.acquireTokenSilent({ ...tokenRequest, account });
       return result.accessToken;
     } catch (err) {
-      if (err instanceof InteractionRequiredAuthError) {
-        const result = await instance.acquireTokenPopup(tokenRequest);
-        return result.accessToken;
-      }
+      // See matching comment in LiveChatInterface.tsx's getAccessToken -
+      // falls back to popup for any silent failure, not just
+      // InteractionRequiredAuthError, since Brave/Safari-style third-party
+      // cookie blocking surfaces as BrowserAuthError: timed_out instead.
+      console.warn('acquireTokenSilent failed, redirecting to sign in:', err);
+      await instance.acquireTokenRedirect(tokenRequest);
       throw err;
     }
   };
@@ -222,12 +463,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       if (!accessToken) return;
       const headers = { Authorization: `Bearer ${accessToken}` };
 
-      const [statsRes, ticketsRes] = await Promise.all([
+      const [statsRes, ticketsRes, cacheRes] = await Promise.all([
         fetch(`${BACKEND_URL}/tickets/stats`, { headers }),
         fetch(`${BACKEND_URL}/tickets?limit=200`, { headers }),
+        fetch(`${BACKEND_URL}/cache/stats`, { headers }),
       ]);
       if (!statsRes.ok) throw new Error(`Stats endpoint returned ${statsRes.status}`);
       if (!ticketsRes.ok) throw new Error(`Tickets endpoint returned ${ticketsRes.status}`);
+      // Cache stats are a bonus panel, not core dashboard function - don't
+      // fail the whole sync if this one endpoint has a problem.
+      if (cacheRes.ok) setCacheStats(await cacheRes.json());
 
       const statsData: BackendStats = await statsRes.json();
       const ticketDocs: any[] = await ticketsRes.json();
@@ -1160,6 +1405,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </ResponsiveContainer>
             </div>
           </div>
+
+          {/* Cache Memory (live) + KV Cache (simulated) - teaching panels */}
+          <CacheMemoryPanel stats={cacheStats} />
+          <KVCacheSimulator />
 
         </div>
       )}

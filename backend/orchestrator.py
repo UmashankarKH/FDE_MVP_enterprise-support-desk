@@ -10,8 +10,9 @@ and the dashboard can show live progress mid-run.
 """
 import logging
 
+import question_cache
 from agents import intake_agent, triage_agent, policy_rag_agent, resolver_agent, critic_agent, action_agent, escalation_agent
-from cosmos_store import save_ticket, append_audit
+from cosmos_store import save_ticket, append_audit, next_ticket_number
 from models import TicketState
 
 logger = logging.getLogger("orchestrator")
@@ -34,6 +35,28 @@ async def _checkpoint(state: TicketState):
         append_audit(state.ticketId, last["agent"], state.issue_text[:200], last["summary"])
 
 
+def _apply_question_cache(state: TicketState) -> bool:
+    """If this exact question already ended in a clean auto-resolve, reuse its
+    classification and jump straight to the RAG step, skipping the Intake and
+    Triage LLM calls. A fresh ticket number is still assigned, and RAG, the
+    Resolver and the Critic all still run - see question_cache.py for the
+    safety rule on what can enter the cache."""
+    hit = question_cache.get(state.issue_text)
+    if hit is None:
+        return False
+    state.category = hit["category"]
+    state.request_type = hit["request_type"]
+    state.ticket_number = next_ticket_number(state.request_type)
+    state.status = "rag_lookup"
+    state.log_step(
+        "intake",
+        f"Question cache hit - assigned {state.ticket_number} ({state.request_type}), "
+        f"category={state.category}. Skipped the Intake and Triage LLM calls.",
+        {"question_cache_hit": True},
+    )
+    return True
+
+
 async def run_pipeline(state: TicketState) -> TicketState:
     """Runs the ticket through Intake -> Triage -> RAG -> Resolver -> Critic.
     Stops automatically at pending_human_approval, escalated, or when it can
@@ -47,6 +70,9 @@ async def run_pipeline(state: TicketState) -> TicketState:
     these log lines are what let a learner see that machine's decisions."""
 
     await _checkpoint(state)  # initial save so it's visible in the dashboard right away
+
+    if state.status == "intake" and _apply_question_cache(state):
+        await _checkpoint(state)
 
     while state.turn_count < state.max_turns:
         if state.status == "auto_resolved":
@@ -84,6 +110,10 @@ async def run_pipeline(state: TicketState) -> TicketState:
             f"Routing turn {state.turn_count}/{state.max_turns}: status={state.status} -> {next_agent_name}",
         )
         await agent_module.run(state)
+        if agent_module is critic_agent:
+            # Only a clean auto-resolve on an auto_resolve-tagged article is
+            # ever stored; anything needing human review is never cached.
+            question_cache.maybe_store(state)
         await _checkpoint(state)
 
     else:
