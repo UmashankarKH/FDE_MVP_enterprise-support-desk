@@ -1,0 +1,121 @@
+invoice_id,received_date,vendor,format,po_number,amount_inr,currency,exception_type,human_touches,days_to_pay_approval,handling_minutes,outcome
+INV-10001,2026-07-03,BlueLine Logistics,Vendor portal,,9700.82,INR,Missing PO number,2,9.9,18.9,Approved
+INV-10002,2026-07-26,Sundaram Steel,Scanned paper,,172974.58,INR,Missing PO number,4,12.1,18.2,Approved
+INV-10003,2026-07-09,Sundaram Steel,Scanned paper,PO-4110,28801.97,INR,None,1,1.7,7.4,Approved
+INV-10004,2026-07-08,Greenfield Chemicals,Emailed PDF,PO-4193,94499.22,INR,None,1,2.4,6.2,Approved
+INV-10005,2026-07-22,Kaveri Plastics,Email body text,PO-4051,129750.27,INR,Duplicate invoice suspected,4,6.1,25.2,Approved
+INV-10006,2026-07-25,BlueLine Logistics,Vendor portal,,65948.55,INR,Missing PO number,3,10.8,40.8,Approved
+INV-10007,2026-07-15,Greenfield Chemicals,Emailed PDF,PO-4205,76416.23,INR,Tax/GST field unreadable,5,8.0,42.7,Approved
+INV-10008,2026-07-16,Apex Packaging,Emailed PDF,PO-4275,158608.92,INR,None,1,3.0,6.6,Approved
+INV-10009,2026-07-17,Apex Packaging,Emailed PDF,,204257.46,INR,Missing PO number,5,7.8,44.9,Approved
+INV-10010,2026-07-06,BlueLine Logistics,Vendor portal,PO-4348,179976.28,INR,None,1,1.7,7.2,Approved
+INV-10011,2026-07-20,Kaveri Plastics,Email body text,PO-4134,29212.87,INR,None,1,1.6,8.6,Approved
+INV-10012,2026-07-27,Sundaram Steel,Scanned paper,,28697.99,INR,Missing PO number,5,4.2,43.1,Approved
+INV-10013,2026-07-05,Apex Packaging,Emailed PDF,PO-4290,48843.76,INR,None,1,3.0,8.1,Approved
+INV-10014,2026-07-23,Sundaram Steel,Scanned paper,PO-4135,16774.87,INR,None,1,2.5,8.8,Approved
+INV-10015,2026-07-19,Kaveri Plastics,Email body text,PO-4224,27189.19,INR,Tax/GST field unreadable,4,4.2,33.0,Approved
+INV-10016,2026-07-18,Apex Packaging,Emailed PDF,PO-4117,36910.85,INR,Amount mismatch with PO,3,6.8,31.1,Approved
+INV-10017,2026-07-14,Orion Electronics,Scanned paper,PO-4242,134054.05,INR,Tax/GST field unreadable,2,10.6,27.6,Approved
+INV-10018,2026-07-18,Greenfield Chemicals,Emailed PDF,PO-4330,118576.68,INR,None,1,1.2,6.8,Approved
+INV-10019,2026-07-28,Sundaram Steel,Scanned paper,PO-4127,26485.61,INR,Amount mismatch with PO,2,13.7,43.0,Approved
+INV-10020,2026-07-15,Sundaram Steel,Scanned paper,PO-4205,27268.4,INR,None,1,1.5,9.1,Approved
+INV-10021,2026-07-18,BlueLine Logistics,Vendor portal,PO-4284,20532.4,INR,None,1,2.9,8.3,Approved
+INV-10022,2026-07-03,Sundaram Steel,Scanned paper,,15350.08,INR,Missing PO number,2,12.5,19.9,Approved
+INV-10023,2026-07-11,Apex Packaging,Emailed PDF,,26928.04,INR,Missing PO number,5,10.6,33.3,Approved
+INV-10024,2026-07-01,Apex Packaging,Emailed PDF,PO-4122,58793.22,INR,None,1,2.9,9.7,Approved
+INV-10025,2026-07-12,Kaveri Plastics,Email body text,PO-4037,17053.76,INR,None,1,2.8,9.5,Approved
+INV-10026,2026-07-04,Sundaram Steel,Scanned paper,PO-4154,19126.98,INR,None,1,2.1,9.7,Approved
+INV-10027,2026-07-21,Apex Packaging,Emailed PDF,,151709.2,INR,Missing PO number,3,11.2,23.5,Approved
+INV-10028,2026-07-09,Sundaram Steel,Scanned paper,PO-4026,123186.67,INR,Amount mismatch with PO,4,11.7,35.2,Approved
+INV-10029,2026-07-05,Sundaram Steel,Scanned paper,PO-4287,2270.75,INR,None,1,2.7,8.3,Approved
+INV-10030,2026-07-28,Apex Packaging,Emailed PDF,PO-4020,27169.89,INR,None,1,1.7,8.2,Approved
+INV-10031,2026-07-26,BlueLine Logistics,Vendor portal,,28036.67,INR,Missing PO number,2,5.8,43.0,Approved
+INV-10032,2026-07-07,Greenfield Chemicals,Emailed PDF,PO-4127,9470.56,INR,None,1,1.1,7.9,Approved
+INV-10033,2026-07-09,Sundaram Steel,Scanned paper,PO-4116,175207.3,INR,None,1,2.7,9.9,Approved
+INV-10034,2026-07-12,Sundaram Steel,Scanned paper,PO-4274,36072.12,INR,Duplicate invoice suspected,4,4.4,34.1,Approved
+INV-10035,2026-07-18,Sundaram Steel,Scanned paper,PO-4261,5238.08,INR,Vendor not in master,5,4.0,43.0,Approved
+INV-10036,2026-07-10,Orion Electronics,Scanned paper,PO-4100,45394.24,INR,None,1,2.3,6.5,Approved
+INV-10037,2026-07-06,BlueLine Logistics,Vendor portal,PO-4356,58003.32,INR,None,1,1.8,9.0,Approved
+INV-10038,2026-07-16,Sundaram Steel,Scanned paper,PO-4000,76240.19,INR,None,1,1.9,6.9,Approved
+INV-10039,2026-07-07,Kaveri Plastics,Email body text,PO-4337,143399.44,INR,Amount mismatch with PO,3,10.7,24.1,Approved
+INV-10040,2026-07-13,Apex Packaging,Emailed PDF,PO-4312,46022.21,INR,None,1,2.2,8.9,Approved
+INV-10041,2026-08-23,Apex Packaging,Emailed PDF,PO-4002,26994.48,INR,None,1,1.4,9.2,Approved
+INV-10042,2026-08-24,Apex Packaging,Emailed PDF,PO-4062,206311.65,INR,None,1,2.8,8.5,Approved
+INV-10043,2026-08-09,Sundaram Steel,Scanned paper,PO-4228,193604.2,INR,None,1,2.5,9.4,Approved
+INV-10044,2026-08-05,Sundaram Steel,Scanned paper,PO-4140,14316.43,INR,None,1,1.6,8.2,Approved
+INV-10045,2026-08-13,Sundaram Steel,Scanned paper,,121270.94,INR,Missing PO number,5,4.6,40.5,Approved
+INV-10046,2026-08-27,BlueLine Logistics,Vendor portal,PO-4391,134935.54,INR,None,1,1.8,9.6,Approved
+INV-10047,2026-08-22,Greenfield Chemicals,Emailed PDF,PO-4308,137410.49,INR,None,1,1.1,7.3,Approved
+INV-10048,2026-08-14,Greenfield Chemicals,Emailed PDF,PO-4065,147507.2,INR,None,1,2.3,6.3,Approved
+INV-10049,2026-08-14,Sundaram Steel,Scanned paper,,76565.26,INR,Missing PO number,5,6.8,43.7,Approved
+INV-10050,2026-08-25,Apex Packaging,Emailed PDF,,249979.72,INR,Missing PO number,2,11.8,35.6,Rejected
+INV-10051,2026-08-25,Apex Packaging,Emailed PDF,PO-4318,6266.71,INR,None,1,1.4,8.8,Approved
+INV-10052,2026-08-13,BlueLine Logistics,Vendor portal,PO-4367,210246.26,INR,Amount mismatch with PO,2,13.3,33.5,Approved
+INV-10053,2026-08-04,Greenfield Chemicals,Emailed PDF,,21337.2,INR,Missing PO number,4,12.5,34.2,Approved
+INV-10054,2026-08-16,BlueLine Logistics,Vendor portal,,16916.87,INR,Missing PO number,4,4.1,29.3,Approved
+INV-10055,2026-08-15,Kaveri Plastics,Email body text,PO-4235,125807.17,INR,None,1,2.8,9.1,Approved
+INV-10056,2026-08-11,Greenfield Chemicals,Emailed PDF,PO-4125,49065.84,INR,Vendor not in master,5,9.7,36.0,Rejected
+INV-10057,2026-08-01,Orion Electronics,Scanned paper,PO-4108,86837.53,INR,None,1,2.4,7.1,Approved
+INV-10058,2026-08-03,Apex Packaging,Emailed PDF,PO-4208,196796.22,INR,None,1,2.0,9.2,Approved
+INV-10059,2026-08-23,Sundaram Steel,Scanned paper,PO-4339,134117.31,INR,None,1,2.5,7.3,Approved
+INV-10060,2026-08-25,Sundaram Steel,Scanned paper,PO-4369,7392.36,INR,Tax/GST field unreadable,5,6.8,33.9,Approved
+INV-10061,2026-08-18,Apex Packaging,Emailed PDF,,7435.29,INR,Missing PO number,3,6.7,44.3,Approved
+INV-10062,2026-08-02,Orion Electronics,Scanned paper,PO-4385,221998.34,INR,None,1,1.9,6.7,Approved
+INV-10063,2026-08-18,Orion Electronics,Scanned paper,,3829.62,INR,Missing PO number,4,4.9,24.7,Approved
+INV-10064,2026-08-19,BlueLine Logistics,Vendor portal,PO-4115,113683.17,INR,None,1,2.2,7.7,Approved
+INV-10065,2026-08-14,BlueLine Logistics,Vendor portal,PO-4390,7818.06,INR,Duplicate invoice suspected,3,9.5,22.2,Approved
+INV-10066,2026-08-21,BlueLine Logistics,Vendor portal,PO-4118,92198.04,INR,Amount mismatch with PO,3,13.2,39.3,Approved
+INV-10067,2026-08-10,Greenfield Chemicals,Emailed PDF,PO-4058,172479.64,INR,None,1,1.1,6.7,Approved
+INV-10068,2026-08-03,Greenfield Chemicals,Emailed PDF,PO-4224,181509.16,INR,None,1,2.0,8.0,Approved
+INV-10069,2026-08-02,Orion Electronics,Scanned paper,PO-4309,9010.3,INR,None,1,2.3,7.1,Approved
+INV-10070,2026-08-12,Apex Packaging,Emailed PDF,PO-4226,69927.61,INR,None,1,2.0,6.4,Approved
+INV-10071,2026-08-15,Sundaram Steel,Scanned paper,,120561.92,INR,Missing PO number,5,12.1,32.9,Approved
+INV-10072,2026-08-12,Apex Packaging,Emailed PDF,,23631.34,INR,Missing PO number,5,8.1,23.1,Approved
+INV-10073,2026-08-21,Sundaram Steel,Scanned paper,PO-4026,150828.32,INR,None,1,2.4,6.5,Approved
+INV-10074,2026-08-27,Apex Packaging,Emailed PDF,,17423.49,INR,Missing PO number,2,8.6,21.2,Approved
+INV-10075,2026-08-17,Orion Electronics,Scanned paper,PO-4361,213639.27,INR,Vendor not in master,3,7.8,42.9,Approved
+INV-10076,2026-08-10,Apex Packaging,Emailed PDF,,217970.72,INR,Missing PO number,4,12.2,25.6,Approved
+INV-10077,2026-08-11,BlueLine Logistics,Vendor portal,PO-4076,136555.1,INR,None,1,2.1,7.8,Approved
+INV-10078,2026-08-13,Kaveri Plastics,Email body text,PO-4196,8539.75,INR,None,1,1.9,9.7,Approved
+INV-10079,2026-08-17,BlueLine Logistics,Vendor portal,PO-4077,38144.31,INR,None,1,2.7,7.8,Approved
+INV-10080,2026-08-21,Apex Packaging,Emailed PDF,,26386.12,INR,Missing PO number,4,7.4,36.7,Approved
+INV-10081,2026-09-21,Sundaram Steel,Scanned paper,PO-4273,99665.45,INR,None,1,1.1,6.3,Approved
+INV-10082,2026-09-02,Apex Packaging,Emailed PDF,PO-4046,14151.2,INR,None,1,2.4,9.6,Approved
+INV-10083,2026-09-22,Apex Packaging,Emailed PDF,PO-4220,6075.95,INR,Duplicate invoice suspected,2,10.1,28.3,Approved
+INV-10084,2026-09-06,Orion Electronics,Scanned paper,,85875.01,INR,Missing PO number,5,13.0,36.3,Approved
+INV-10085,2026-09-28,Orion Electronics,Scanned paper,PO-4153,123347.97,INR,None,1,1.6,10.0,Approved
+INV-10086,2026-09-19,Apex Packaging,Emailed PDF,PO-4294,10284.43,INR,None,1,2.3,7.1,Approved
+INV-10087,2026-09-08,Greenfield Chemicals,Emailed PDF,PO-4310,213224.56,INR,None,1,1.5,9.2,Approved
+INV-10088,2026-09-10,BlueLine Logistics,Vendor portal,PO-4369,23489.18,INR,None,1,2.8,8.6,Approved
+INV-10089,2026-09-12,Apex Packaging,Emailed PDF,PO-4067,94924.3,INR,Duplicate invoice suspected,3,11.9,41.7,Approved
+INV-10090,2026-09-03,Orion Electronics,Scanned paper,PO-4131,237721.32,INR,None,1,1.7,6.5,Approved
+INV-10091,2026-09-15,Kaveri Plastics,Email body text,PO-4370,117430.53,INR,Amount mismatch with PO,5,4.1,32.5,Approved
+INV-10092,2026-09-18,Greenfield Chemicals,Emailed PDF,PO-4195,25027.68,INR,None,1,1.9,8.5,Approved
+INV-10093,2026-09-02,BlueLine Logistics,Vendor portal,PO-4325,230065.28,INR,None,1,1.2,6.2,Approved
+INV-10094,2026-09-14,Sundaram Steel,Scanned paper,,59846.09,INR,Missing PO number,5,9.9,37.6,Approved
+INV-10095,2026-09-22,Greenfield Chemicals,Emailed PDF,PO-4143,111516.59,INR,None,1,1.5,7.5,Approved
+INV-10096,2026-09-07,Orion Electronics,Scanned paper,PO-4031,13147.91,INR,None,1,2.6,6.4,Approved
+INV-10097,2026-09-07,BlueLine Logistics,Vendor portal,,24030.25,INR,Missing PO number,3,4.7,38.7,Approved
+INV-10098,2026-09-18,Greenfield Chemicals,Emailed PDF,PO-4396,6131.52,INR,None,1,3.0,10.0,Approved
+INV-10099,2026-09-05,Apex Packaging,Emailed PDF,PO-4013,5690.49,INR,None,1,1.0,7.1,Approved
+INV-10100,2026-09-24,Sundaram Steel,Scanned paper,PO-4243,14551.71,INR,None,1,1.4,8.5,Approved
+INV-10101,2026-09-23,Orion Electronics,Scanned paper,PO-4234,36853.14,INR,None,1,1.9,6.4,Approved
+INV-10102,2026-09-10,Apex Packaging,Emailed PDF,,44450.09,INR,Missing PO number,4,7.8,34.1,Approved
+INV-10103,2026-09-13,BlueLine Logistics,Vendor portal,,21649.82,INR,Missing PO number,3,8.1,40.3,Approved
+INV-10104,2026-09-24,Apex Packaging,Emailed PDF,PO-4340,239790.35,INR,Amount mismatch with PO,2,4.9,20.6,Approved
+INV-10105,2026-09-10,Apex Packaging,Emailed PDF,,28785.49,INR,Missing PO number,5,12.7,37.5,Approved
+INV-10106,2026-09-09,Sundaram Steel,Scanned paper,PO-4108,6332.44,INR,None,1,2.1,6.5,Approved
+INV-10107,2026-09-01,Greenfield Chemicals,Emailed PDF,PO-4392,24915.95,INR,None,1,2.3,8.8,Approved
+INV-10108,2026-09-21,Greenfield Chemicals,Emailed PDF,PO-4173,11828.66,INR,None,1,1.8,6.6,Approved
+INV-10109,2026-09-20,Apex Packaging,Emailed PDF,PO-4192,104997.12,INR,None,1,1.6,9.8,Approved
+INV-10110,2026-09-09,Apex Packaging,Emailed PDF,,178273.12,INR,Missing PO number,5,8.9,29.9,Approved
+INV-10111,2026-09-20,Sundaram Steel,Scanned paper,PO-4056,179266.98,INR,None,1,1.6,6.9,Approved
+INV-10112,2026-09-13,Apex Packaging,Emailed PDF,PO-4392,86214.29,INR,Amount mismatch with PO,5,11.5,22.7,Approved
+INV-10113,2026-09-11,Apex Packaging,Emailed PDF,PO-4342,24573.61,INR,None,1,1.9,6.3,Approved
+INV-10114,2026-09-03,BlueLine Logistics,Vendor portal,PO-4213,119107.11,INR,Duplicate invoice suspected,5,12.3,42.8,Approved
+INV-10115,2026-09-03,Apex Packaging,Emailed PDF,PO-4205,117068.67,INR,None,1,1.4,9.1,Approved
+INV-10116,2026-09-05,Apex Packaging,Emailed PDF,PO-4397,11782.51,INR,Vendor not in master,3,6.6,22.7,Approved
+INV-10117,2026-09-05,BlueLine Logistics,Vendor portal,,138705.75,INR,Missing PO number,4,12.6,34.9,Approved
+INV-10118,2026-09-27,Sundaram Steel,Scanned paper,PO-4140,18559.75,INR,None,1,1.9,6.2,Approved
+INV-10119,2026-09-02,BlueLine Logistics,Vendor portal,PO-4046,141554.92,INR,None,1,2.9,9.0,Approved
+INV-10120,2026-09-23,Greenfield Chemicals,Emailed PDF,PO-4164,18940.16,INR,None,1,2.6,9.3,Approved
